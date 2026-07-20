@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "foundry-common"
+version = "0.1.0"
+description = "Shared platform modules for ZoidLab Foundry apps: auth/session, Nyquest Pro entitlements, export envelope, relay client, pricing, and the Postgres+RLS core."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "PyJWT>=2.8",
+    "httpx>=0.27",
+    "psycopg[binary]>=3.2",
+    "psycopg-pool>=3.2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
