@@ -12,7 +12,8 @@ GATE_ENABLED = os.environ.get("FOUNDRY_GATE_ENABLED", "true").lower() != "false"
 MOCK_PRO_USER = os.environ.get("MOCK_PRO_USER", "false").lower() == "true"
 PRO_PLANS = ["pro", "team", "teams", "enterprise"]
 ALL_PACKAGES = ["builder", "marketplace", "prompter", "memorymaker", "rag",
-                "trustgate", "spendguard", "modelbench", "eval"]
+                "trustgate", "spendguard", "modelbench", "eval",
+                "vision", "voice", "mcp", "swarm"]
 
 
 def _plan_ok(plan):
