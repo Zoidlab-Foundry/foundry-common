@@ -258,7 +258,11 @@ def make_router(manifest):
                 return {"type": "propose", "capability": capd["name"], "params": params,
                         "summary": str(action.get("summary", ""))[:300], "confirm": token,
                         "expires": exp, "lookups": lookups, "billing": llm.billing_mode()}
-            # answer / step
+            # answer / step — never return an empty reply (seen once in testing: valid
+            # JSON, blank text). Nudge the model to answer substantively instead.
+            if not str(action.get("text", "")).strip():
+                msgs.append({"role": "user", "content": "[SYSTEM] Your text was empty. Reply again with a substantive answer in the required JSON format."})
+                continue
             action["billing"] = llm.billing_mode()
             action["lookups"] = lookups
             return action
