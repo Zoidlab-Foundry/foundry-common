@@ -39,13 +39,24 @@ def admin_connect(dbname):
 
 
 def make_tx(pool):
-    """A transaction class scoped to a tenant: sets app.current_owner so RLS applies."""
+    """A transaction class scoped to a tenant: sets app.current_owner so RLS applies.
+
+    `pool` may be a ConnectionPool OR a zero-arg callable returning the current pool.
+    Prefer the callable form (`make_tx(lambda: _pool)`) in any app that runs Celery: under
+    prefork, fork_safe() replaces the module's pool inside each worker child, and a _tx that
+    captured the ORIGINAL pool object would keep using the closed one — which surfaces as the
+    PoolTimeout / jobs-stuck-in-queued failure this library exists to prevent. Resolving the
+    pool per transaction makes that rebinding actually take effect.
+    """
+    resolve = pool if callable(pool) else (lambda: pool)
+
     class _tx:
         def __init__(self, owner):
             self.owner = owner or ""
 
         def __enter__(self):
-            self.conn = pool.getconn()
+            self.pool = resolve()
+            self.conn = self.pool.getconn()
             self.cur = self.conn.cursor(row_factory=dict_row)
             self.cur.execute("SELECT set_config('app.current_owner', %s, true)", (self.owner,))
             return self.cur
@@ -58,7 +69,7 @@ def make_tx(pool):
                     self.conn.commit()
             finally:
                 self.cur.close()
-                pool.putconn(self.conn)
+                self.pool.putconn(self.conn)
     return _tx
 
 
