@@ -235,7 +235,14 @@ def make_router(manifest):
             out, usage = await llm.chat(llm.DEFAULT_MODEL, msgs, temperature=0.2, max_tokens=700)
             action = _parse_action(out)
             if action is None:
-                return {"type": "answer", "text": out.strip()[:2000], "billing": llm.billing_mode()}
+                # Unparseable reply. If it is EMPTY, that is a model hiccup — retry rather than
+                # handing the user a blank bubble (the v0.2.3 guard only covered parsed actions).
+                raw = out.strip()
+                if not raw:
+                    msgs.append({"role": "user", "content": "[SYSTEM] Your reply was empty. Reply with exactly one JSON action in the required format."})
+                    continue
+                # Non-empty but not our JSON: surface it as a plain answer.
+                return {"type": "answer", "text": raw[:2000], "billing": llm.billing_mode(), "lookups": lookups}
             if action["type"] == "lookup":
                 capd = _find_cap(manifest, action.get("capability", ""))
                 if not capd or capd["risk"] != "read" or not _validate_params(capd, action.get("params", {})):
