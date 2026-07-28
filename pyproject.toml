@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "foundry-common"
-version = "0.2.1"
+version = "0.2.2"
 description = "Shared platform modules for ZoidLab Foundry apps: auth/session, Nyquest Pro entitlements, export envelope, relay client, pricing, and the Postgres+RLS core."
 readme = "README.md"
 license = { text = "MIT" }

@@ -217,11 +217,13 @@ def make_router(manifest):
         cookie = request.cookies.get("zb_session", "")
         if body.mode not in ("ask", "guide", "auto"):
             raise HTTPException(400, "bad mode")
+        # apply the user's own relay key FIRST — apps with no shared key (e.g. the
+        # deterministic ones) must still serve users who carry their own rk claim
+        llm.set_relay_auth(relay_key(request))
         if not llm.available():
             return {"type": "answer", "billing": "none",
                     "text": "The assistant needs a relay key to answer. The static Guide "
                             "button covers the basics of every page in the meantime."}
-        llm.set_relay_auth(relay_key(request))
         msgs = [{"role": "system", "content": _prompt(manifest, body.mode)}]
         if body.page:
             msgs.append({"role": "system", "content": f"The user is currently on page: {body.page}"})
